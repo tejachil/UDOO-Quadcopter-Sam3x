@@ -4,8 +4,8 @@ int bufCount;
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(57600);
-  Serial1.begin(57600);
+  Serial.begin(115200);
+  Serial1.begin(115200);
   pinMode(debugLED, OUTPUT);
 }
 
