@@ -1,38 +1,36 @@
 const int debugLED = 8;
-static char inputBuf[100];
-int bufCount;
+String inputBuf;
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
   Serial1.begin(115200);
   pinMode(debugLED, OUTPUT);
+  digitalWrite(debugLED, LOW);
 }
 
 void loop() {
   // put your main code here, to run repeatedly: 
-  inputBuf[0] = 0;
-  bufCount = 0;
+  inputBuf = "";
   while(Serial1.available()){
-    inputBuf[bufCount] = Serial1.read();
-    ++bufCount;
+    char c = Serial1.read();
+    inputBuf += c;
   }
-  if(bufCount > 0)  Serial.print(inputBuf);
+  if(!inputBuf.equals("")){
+    Serial.print(inputBuf);
+    inputBuf = "";
+  }
   
-  inputBuf[0] = 0;
-  bufCount = 0;
   while(Serial.available()){
-    inputBuf[bufCount] = Serial.read();
-        Serial.print(inputBuf[bufCount]);
-    ++bufCount;
+    char c = Serial.read();
+    inputBuf += c;
     delay(1);
   }
-  if(bufCount > 0){
-    if(strstr(inputBuf, "CONTROL")){
+  if(!inputBuf.equals("")){
+    if(inputBuf.indexOf("CONTROL") != -1){
       digitalWrite(debugLED, HIGH);
     }
     else{
-      digitalWrite(debugLED, LOW);
       Serial1.print(inputBuf);
     }
   }
