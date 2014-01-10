@@ -34,8 +34,7 @@ void loop() {
   if(c == '\n'){
     String tempBuf;
     imuBuf.trim();
-    Serial.print(imuBuf);
-    Serial.print("\t\t");
+    Serial.println(imuBuf);
     
     copterDynamics.yaw = stringToFloat(imuBuf.substring(imuBuf.indexOf('=')+1, imuBuf.indexOf(',')));
     tempBuf = imuBuf.substring(imuBuf.indexOf(',')+1);
@@ -45,14 +44,16 @@ void loop() {
     imuBuf = tempBuf;
     copterDynamics.roll = stringToFloat(imuBuf);
 
+    /*    
+    Serial.print("\t\t");
     Serial.print(copterDynamics.yaw);
     Serial.print('\t');
     Serial.print(copterDynamics.pitch);
     Serial.print('\t');
     Serial.print(copterDynamics.roll);
-    Serial.print('\t');
-    
+    Serial.print('\t');    
     Serial.println("");
+    */
   }
 
   inputBuf = "";  
