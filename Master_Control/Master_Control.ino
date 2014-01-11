@@ -93,6 +93,7 @@ void loop() {
       Serial.print('\t');    
       Serial.println("");
       */
+      digitalWrite(debugLED, LOW);
     }
     else{
       Serial1.print(inputBuf);
