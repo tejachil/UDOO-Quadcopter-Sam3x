@@ -1,12 +1,13 @@
 #include <stdlib.h>     /* strtof */
 
 const int debugLED = 8;
-String inputBuf, imuBuf;
+String inputBuf, imuBuf, tempBuf;
 
 struct Dynamics {
   float yaw;
   float pitch;
   float roll;
+  float throttle;
 };
 
 static Dynamics copterDynamics, inputDynamics;
@@ -32,7 +33,6 @@ void loop() {
   }
   
   if(c == '\n'){
-    String tempBuf;
     imuBuf.trim();
     Serial.println(imuBuf);
     
@@ -63,8 +63,36 @@ void loop() {
     delay(1);
   }
   if(!inputBuf.equals("")){
-    if(inputBuf.indexOf("CONTROL") != -1){
+    if(inputBuf.indexOf("CONTROL DYNAMICS") != -1){
       digitalWrite(debugLED, HIGH);
+      inputBuf.trim();
+      
+      copterDynamics.yaw = stringToFloat(inputBuf.substring(inputBuf.indexOf('=')+1, inputBuf.indexOf(',')));
+      tempBuf = inputBuf.substring(inputBuf.indexOf(',')+1);
+      inputBuf = tempBuf;
+      copterDynamics.pitch = stringToFloat(inputBuf);
+      tempBuf = inputBuf.substring(inputBuf.indexOf(',')+1);
+      inputBuf = tempBuf;
+      copterDynamics.roll = stringToFloat(inputBuf);
+      if(inputBuf.indexOf("AUTO") == -1){
+        tempBuf = inputBuf.substring(inputBuf.indexOf('::')+2);
+        inputBuf = tempBuf;
+        copterDynamics.throttle = stringToFloat(inputBuf);
+      }
+      else  copterDynamics.throttle = -9.0;
+      
+      /*    
+      Serial.print("\t\t");
+      Serial.print(copterDynamics.yaw);
+      Serial.print('\t');
+      Serial.print(copterDynamics.pitch);
+      Serial.print('\t');
+      Serial.print(copterDynamics.roll);
+      Serial.print('\t');    
+      Serial.print(copterDynamics.throttle);
+      Serial.print('\t');    
+      Serial.println("");
+      */
     }
     else{
       Serial1.print(inputBuf);
