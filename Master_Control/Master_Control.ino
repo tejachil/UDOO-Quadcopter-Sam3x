@@ -13,8 +13,10 @@ struct Dynamics {
   float yaw;
   float pitch;
   float roll;
-  float throttle;
+  int throttle;
 };
+
+volatile long speed;
 
 static Dynamics copterDynamics, inputDynamics;
 
@@ -24,6 +26,7 @@ void TC3_Handler()
 {
         TC_GetStatus(TC1, 0);
         digitalWrite(8, l = !l);
+      
 }
 
 void startTimer(Tc *tc, uint32_t channel, IRQn_Type irq, uint32_t frequency) {
@@ -49,18 +52,12 @@ float stringToFloat(String str){
   return ret;
 }
 
-void arm(Servo motor){
-  // arm the speed controller, modify as necessary for your ESC  
-  setSpeed(motor, 0); 
-  delay(1000); //delay 1 second,  some speed controllers may need longer
-}
-
-void setSpeed(Servo motor, int speed){
-  // speed is from 0 to 100 where 0 is off and 100 is maximum speed
-  //the following maps speed values of 0-100 to angles from 0-180,
-  // some speed controllers may need different values, see the ESC instructions
-  int angle = map(speed, 0, 100, 0, 180);
-  motor.write(angle);    
+void arm(){
+  for(int i = 0; i < 4; ++i){
+    brushlessMotor[i].attach(4+i);
+    brushlessMotor[i].writeMicroseconds(1000);
+  }
+  delay(6000);
 }
 
 void setup() {
@@ -74,16 +71,19 @@ void setup() {
   //Servo serv;
   //serv.attach(8);
   Serial.println("ARMING MOTORS");
-  brushlessMotor[FRONT_LEFT].attach(4);
-  brushlessMotor[FRONT_RIGHT].attach(5);
-  brushlessMotor[REAR_RIGHT].attach(6);
-  brushlessMotor[REAR_LEFT].attach(7);
-  arm(brushlessMotor[FRONT_LEFT]);
-  arm(brushlessMotor[FRONT_RIGHT]);  
-  arm(brushlessMotor[REAR_RIGHT]);
-  arm(brushlessMotor[REAR_LEFT]);
+  
+  arm();
+  
+  for(speed = 1000; speed <= 1070; ++speed){
+    brushlessMotor[FRONT_LEFT].writeMicroseconds(speed);
+    brushlessMotor[FRONT_RIGHT].writeMicroseconds(speed);
+    brushlessMotor[REAR_RIGHT].writeMicroseconds(speed);
+    brushlessMotor[REAR_LEFT].writeMicroseconds(speed);
+  }
+  
+  //inputDynamics.throttle = 35;
   Serial.println("MOTORS ARMED");
-  //startTimer(TC1, 0, TC3_IRQn, 50); //TC1 channel 0, the IRQ for that channel and the desired frequency
+  //startTimer(TC1, 0, TC3_IRQn, 20); //TC1 channel 0, the IRQ for that channel and the desired frequency
 }
 
 void loop() {
@@ -122,13 +122,13 @@ void loop() {
   char d = 0;
   while(Serial.available()){
     d = Serial.read();
-    if(d == '$')  imuBuf = "";
+    if(d == '$')  inputBuf = "";
     inputBuf += d;
   }
   Serial.flush();
   if(d == '\n'){
-    digitalWrite(debugLED, stateLED = !stateLED);
     if(inputBuf.startsWith("$CONTROL DYNAMICS")){
+      digitalWrite(debugLED, stateLED = !stateLED);
       inputBuf.trim();
       
       tempBuf = inputBuf.substring(inputBuf.indexOf('=')+1);
@@ -143,7 +143,17 @@ void loop() {
 
       tempBuf = inputBuf.substring(inputBuf.indexOf('::')+2);
       inputBuf = tempBuf;
-      copterDynamics.throttle = stringToFloat(inputBuf);
+      inputDynamics.throttle = inputBuf.toInt();
+      
+      speed = inputDynamics.throttle * 10;
+      speed = speed + 1000;
+      //Serial.println(speed);      
+      brushlessMotor[FRONT_LEFT].writeMicroseconds(speed);
+      brushlessMotor[FRONT_RIGHT].writeMicroseconds(speed);
+      brushlessMotor[REAR_RIGHT].writeMicroseconds(speed);
+      brushlessMotor[REAR_LEFT].writeMicroseconds(speed);
+      
+      
       //if(inputBuf.indexOf("AUTO") != -1)  copterDynamics.throttle = 0.0;
       /*else{
         tempBuf = inputBuf.substring(inputBuf.indexOf('::')+2);
@@ -171,11 +181,7 @@ void loop() {
 //    digitalWrite(debugLED, LOW);
   }
   
-  setSpeed(brushlessMotor[FRONT_LEFT], (int)copterDynamics.throttle);
-  setSpeed(brushlessMotor[FRONT_RIGHT], (int)copterDynamics.throttle);
-  setSpeed(brushlessMotor[REAR_RIGHT], (int)copterDynamics.throttle);
-  setSpeed(brushlessMotor[REAR_LEFT], (int)copterDynamics.throttle);
-    //delay(500);
+   
 //    Serial.println("Hello");
   //delay(20);
 }
