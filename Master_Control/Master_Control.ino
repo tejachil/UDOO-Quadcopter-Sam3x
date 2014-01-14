@@ -186,20 +186,41 @@ void loop() {
     }*/
 //    digitalWrite(debugLED, LOW);
   }
-      int deltaThrust = inputDynamics.thrust - copterDynamics.thrust;
+      int deltaThrust = 0; //inputDynamics.thrust - copterDynamics.thrust;
       
-      motorSpeeds[FRONT_LEFT] += deltaThrust;
-      motorSpeeds[FRONT_RIGHT] += deltaThrust;
-      motorSpeeds[REAR_RIGHT] += deltaThrust;
-      motorSpeeds[REAR_LEFT] += deltaThrust;
+      int delta;
       
+      delta = (int)(0 - Kp*copterDynamics.pitch - Kp*copterDynamics.roll);
+      motorSpeeds[FRONT_LEFT] = inputDynamics.thrust;//+= deltaThrust;
+      motorSpeeds[FRONT_LEFT] += delta;
+      /*Serial.print(motorSpeeds[FRONT_LEFT]);*/
+
+      delta = (int)(0 - Kp*copterDynamics.pitch + Kp*copterDynamics.roll);
+      motorSpeeds[FRONT_RIGHT] = inputDynamics.thrust;//+= deltaThrust;
+      motorSpeeds[FRONT_LEFT] += delta;
+//      Serial.print(motorSpeeds[FRONT_RIGHT]);
+
+      delta = (int)(0 + Kp*copterDynamics.pitch + Kp*copterDynamics.roll);
+      motorSpeeds[REAR_RIGHT] = inputDynamics.thrust;//+= deltaThrust;
+  //    motorSpeeds[FRONT_LEFT] += delta;
+  //    Serial.print(motorSpeeds[REAR_RIGHT]);
+
+      delta = (int)(0 + Kp*copterDynamics.pitch - Kp*copterDynamics.roll);
+      motorSpeeds[REAR_LEFT] = inputDynamics.thrust;//+= deltaThrust;
+//      motorSpeeds[FRONT_LEFT] += delta;
+    //  Serial.print(motorSpeeds[REAR_LEFT]);
+
+      //Serial.println("");
       copterDynamics.thrust = inputDynamics.thrust;
       
+      //String debugStr = String(motorSpeeds[FRONT_LEFT]) + "\t" + String(motorSpeeds[FRONT_RIGHT]) + "\t" + String(motorSpeeds[REAR_RIGHT]) + "\t" + String(motorSpeeds[REAR_LEFT]);
+      
       brushlessMotor[FRONT_LEFT].writeMicroseconds(motorSpeeds[FRONT_LEFT]);
-      brushlessMotor[FRONT_RIGHT].writeMicroseconds(motorSpeeds[FRONT_RIGHT]);
-      brushlessMotor[REAR_RIGHT].writeMicroseconds(motorSpeeds[REAR_RIGHT]);
+      int speed = motorSpeeds[FRONT_RIGHT];
+//      brushlessMotor[FRONT_RIGHT].writeMicroseconds(motorSpeeds[FRONT_RIGHT]);
+      /*brushlessMotor[REAR_RIGHT].writeMicroseconds(motorSpeeds[REAR_RIGHT]);
       brushlessMotor[REAR_LEFT].writeMicroseconds(motorSpeeds[REAR_LEFT]);
-   
+   */
 //    Serial.println("Hello");
   //delay(20);
 }
