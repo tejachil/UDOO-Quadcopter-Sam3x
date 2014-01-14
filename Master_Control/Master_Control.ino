@@ -9,16 +9,18 @@ enum MOTOR_LOCATIONS {FRONT_LEFT, FRONT_RIGHT, REAR_RIGHT, REAR_LEFT};
 
 Servo brushlessMotor[4];
 
+int motorSpeeds[4];
+
 struct Dynamics {
   float yaw;
   float pitch;
   float roll;
-  int throttle;
+  int thrust;
 };
 
-volatile int speed;
-
 static Dynamics copterDynamics, inputDynamics;
+
+const float Kp = 0.75;
 
 /*volatile boolean l;
 //TC1 ch 0
@@ -74,14 +76,21 @@ void setup() {
   
   arm();
   
-  for(speed = 1000; speed <= 1070; ++speed){
+  for(int speed = 1000; speed <= 1070; ++speed){
     brushlessMotor[FRONT_LEFT].writeMicroseconds(speed);
     brushlessMotor[FRONT_RIGHT].writeMicroseconds(speed);
     brushlessMotor[REAR_RIGHT].writeMicroseconds(speed);
     brushlessMotor[REAR_LEFT].writeMicroseconds(speed);
   }
   
-  //inputDynamics.throttle = 35;
+  motorSpeeds[FRONT_LEFT] = 1070;
+  motorSpeeds[FRONT_RIGHT] = 1070;
+  motorSpeeds[REAR_RIGHT] = 1070;
+  motorSpeeds[REAR_LEFT] = 1070;
+  copterDynamics.thrust = 1070;
+  inputDynamics.thrust = 1070;
+  
+
   Serial.println("MOTORS ARMED");
   //startTimer(TC1, 0, TC3_IRQn, 20); //TC1 channel 0, the IRQ for that channel and the desired frequency
 }
@@ -97,7 +106,7 @@ void loop() {
   Serial1.flush();
   if(c == '\n'){
     imuBuf.trim();
-    //Serial.println(imuBuf);
+    Serial.println(imuBuf);
     
     tempBuf = imuBuf.substring(imuBuf.indexOf('=')+1);
     imuBuf = String(tempBuf);
@@ -143,16 +152,13 @@ void loop() {
 
       tempBuf = inputBuf.substring(inputBuf.indexOf('::')+2);
       inputBuf = tempBuf;
-      inputDynamics.throttle = inputBuf.toInt();
+      inputDynamics.thrust = inputBuf.toInt();
       
       //speed = inputDynamics.throttle * 10;
       //speed = speed + 1000;
-      Serial.println(inputDynamics.throttle);      
-      brushlessMotor[FRONT_LEFT].writeMicroseconds(inputDynamics.throttle);
-      brushlessMotor[FRONT_RIGHT].writeMicroseconds(inputDynamics.throttle);
-      brushlessMotor[REAR_RIGHT].writeMicroseconds(inputDynamics.throttle);
-      brushlessMotor[REAR_LEFT].writeMicroseconds(inputDynamics.throttle);
+      //Serial.println(inputDynamics.thrust);      
       
+      // TESTING COMMAND: $CONTROL DYNAMICS #YPRT=12.32,12.33,12.43::1300.00
       
       //if(inputBuf.indexOf("AUTO") != -1)  copterDynamics.throttle = 0.0;
       /*else{
@@ -180,7 +186,19 @@ void loop() {
     }*/
 //    digitalWrite(debugLED, LOW);
   }
-  
+      int deltaThrust = inputDynamics.thrust - copterDynamics.thrust;
+      
+      motorSpeeds[FRONT_LEFT] += deltaThrust;
+      motorSpeeds[FRONT_RIGHT] += deltaThrust;
+      motorSpeeds[REAR_RIGHT] += deltaThrust;
+      motorSpeeds[REAR_LEFT] += deltaThrust;
+      
+      copterDynamics.thrust = inputDynamics.thrust;
+      
+      brushlessMotor[FRONT_LEFT].writeMicroseconds(motorSpeeds[FRONT_LEFT]);
+      brushlessMotor[FRONT_RIGHT].writeMicroseconds(motorSpeeds[FRONT_RIGHT]);
+      brushlessMotor[REAR_RIGHT].writeMicroseconds(motorSpeeds[REAR_RIGHT]);
+      brushlessMotor[REAR_LEFT].writeMicroseconds(motorSpeeds[REAR_LEFT]);
    
 //    Serial.println("Hello");
   //delay(20);
