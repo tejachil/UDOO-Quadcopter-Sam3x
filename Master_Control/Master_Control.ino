@@ -16,7 +16,7 @@ struct Dynamics {
   int throttle;
 };
 
-volatile long speed;
+volatile int speed;
 
 static Dynamics copterDynamics, inputDynamics;
 
@@ -97,7 +97,7 @@ void loop() {
   Serial1.flush();
   if(c == '\n'){
     imuBuf.trim();
-    Serial.println(imuBuf);
+    //Serial.println(imuBuf);
     
     tempBuf = imuBuf.substring(imuBuf.indexOf('=')+1);
     imuBuf = String(tempBuf);
@@ -145,13 +145,13 @@ void loop() {
       inputBuf = tempBuf;
       inputDynamics.throttle = inputBuf.toInt();
       
-      speed = inputDynamics.throttle * 10;
-      speed = speed + 1000;
-      //Serial.println(speed);      
-      brushlessMotor[FRONT_LEFT].writeMicroseconds(speed);
-      brushlessMotor[FRONT_RIGHT].writeMicroseconds(speed);
-      brushlessMotor[REAR_RIGHT].writeMicroseconds(speed);
-      brushlessMotor[REAR_LEFT].writeMicroseconds(speed);
+      //speed = inputDynamics.throttle * 10;
+      //speed = speed + 1000;
+      Serial.println(inputDynamics.throttle);      
+      brushlessMotor[FRONT_LEFT].writeMicroseconds(inputDynamics.throttle);
+      brushlessMotor[FRONT_RIGHT].writeMicroseconds(inputDynamics.throttle);
+      brushlessMotor[REAR_RIGHT].writeMicroseconds(inputDynamics.throttle);
+      brushlessMotor[REAR_LEFT].writeMicroseconds(inputDynamics.throttle);
       
       
       //if(inputBuf.indexOf("AUTO") != -1)  copterDynamics.throttle = 0.0;
