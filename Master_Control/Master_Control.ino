@@ -18,7 +18,7 @@ struct Dynamics {
   int thrust;
 };
 
-static Dynamics copterDynamics, inputDynamics;
+Dynamics copterDynamics, inputDynamics;
 
 const float Kp = 0.75;
 
@@ -106,7 +106,7 @@ void loop() {
   Serial1.flush();
   if(c == '\n'){
     imuBuf.trim();
-    Serial.println(imuBuf);
+    //Serial.println(imuBuf);
     
     tempBuf = imuBuf.substring(imuBuf.indexOf('=')+1);
     imuBuf = String(tempBuf);
@@ -186,37 +186,40 @@ void loop() {
     }*/
 //    digitalWrite(debugLED, LOW);
   }
-      int deltaThrust = 0; //inputDynamics.thrust - copterDynamics.thrust;
+      //int deltaThrust = 0; //inputDynamics.thrust - copterDynamics.thrust;
       
       int delta;
       
       delta = (int)(0 - Kp*copterDynamics.pitch - Kp*copterDynamics.roll);
       motorSpeeds[FRONT_LEFT] = inputDynamics.thrust;//+= deltaThrust;
       motorSpeeds[FRONT_LEFT] += delta;
-      /*Serial.print(motorSpeeds[FRONT_LEFT]);*/
+//      Serial.println(motorSpeeds[FRONT_LEFT]);
+      brushlessMotor[FRONT_LEFT].writeMicroseconds(motorSpeeds[FRONT_LEFT]);
 
       delta = (int)(0 - Kp*copterDynamics.pitch + Kp*copterDynamics.roll);
       motorSpeeds[FRONT_RIGHT] = inputDynamics.thrust;//+= deltaThrust;
-      motorSpeeds[FRONT_LEFT] += delta;
+      motorSpeeds[FRONT_RIGHT] += delta;
+      brushlessMotor[FRONT_RIGHT].writeMicroseconds(motorSpeeds[FRONT_RIGHT]);
 //      Serial.print(motorSpeeds[FRONT_RIGHT]);
 
       delta = (int)(0 + Kp*copterDynamics.pitch + Kp*copterDynamics.roll);
       motorSpeeds[REAR_RIGHT] = inputDynamics.thrust;//+= deltaThrust;
-  //    motorSpeeds[FRONT_LEFT] += delta;
+      motorSpeeds[REAR_RIGHT] += delta;
+      brushlessMotor[REAR_RIGHT].writeMicroseconds(motorSpeeds[REAR_RIGHT]);
   //    Serial.print(motorSpeeds[REAR_RIGHT]);
 
       delta = (int)(0 + Kp*copterDynamics.pitch - Kp*copterDynamics.roll);
       motorSpeeds[REAR_LEFT] = inputDynamics.thrust;//+= deltaThrust;
-//      motorSpeeds[FRONT_LEFT] += delta;
-    //  Serial.print(motorSpeeds[REAR_LEFT]);
+      motorSpeeds[REAR_LEFT] += delta;
+      brushlessMotor[REAR_LEFT].writeMicroseconds(motorSpeeds[REAR_LEFT]);
+/*    //  Serial.print(motorSpeeds[REAR_LEFT]);
 
       //Serial.println("");
       copterDynamics.thrust = inputDynamics.thrust;
       
       //String debugStr = String(motorSpeeds[FRONT_LEFT]) + "\t" + String(motorSpeeds[FRONT_RIGHT]) + "\t" + String(motorSpeeds[REAR_RIGHT]) + "\t" + String(motorSpeeds[REAR_LEFT]);
       
-      brushlessMotor[FRONT_LEFT].writeMicroseconds(motorSpeeds[FRONT_LEFT]);
-      int speed = motorSpeeds[FRONT_RIGHT];
+      //brushlessMotor[FRONT_LEFT].writeMicroseconds(motorSpeeds[FRONT_LEFT]);
 //      brushlessMotor[FRONT_RIGHT].writeMicroseconds(motorSpeeds[FRONT_RIGHT]);
       /*brushlessMotor[REAR_RIGHT].writeMicroseconds(motorSpeeds[REAR_RIGHT]);
       brushlessMotor[REAR_LEFT].writeMicroseconds(motorSpeeds[REAR_LEFT]);
